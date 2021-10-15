@@ -1,0 +1,109 @@
+version: '3.7'
+
+x-base: &base
+  image: robotology/yarp-ros2:default
+  environment:
+    - DISPLAY=${DISPLAY}
+    - XAUTHORITY=/home/user1/.Xauthority
+    - QT_X11_NO_MITSHM=1
+    - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user1/1000/bus
+    - XDG_RUNTIME_DIR=/run/user1/1000
+    - YARP_COLORED_OUTPUT=1
+    - YARP_NAMESPACE=/root
+    - ROS_HOSTNAME=localhost
+    - ROS_MASTER_URI=http://localhost:11311
+  volumes:
+    - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    - "${XAUTHORITY}:/home/user1/.Xauthority:rw"
+    - "${XDG_RUNTIME_DIR}/yarp:/run/user1/1000/yarp"
+    - "${XDG_RUNTIME_DIR}/dconf:/run/user1/1000/dconf"
+    - "${XDG_RUNTIME_DIR}/bus:/run/user1/1000/bus"
+    - "${HOME}/.config/yarp:/home/user1/.config/yarp:rw"
+    - "${HOME}/.local/share/yarp:/home/user1/.local/share/yarp:rw"
+    - "${HOME}/.gitconfig:/home/user1/.gitconfig"
+    # - ros1-volume:/home/user1/.ros
+  # network_mode: host
+  # ipc: host
+  pid: host
+  security_opt:
+    - apparmor:unconfined
+
+services:
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.5
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker --web --webyarp --docker --docker.watch --docker.domain=localhost --logLevel=DEBUG
+      - --entrypoints.web-secure.address=:443 
+      - --providers.docker=true
+    ports:
+      # The HTTP port
+      # - "80:80"
+      # # The Web UI (enabled by --api.insecure=true)
+      - "443:443"
+      - "8080:8080"
+      - "10000:10000"
+      - "10003:10003"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./config:/etc/traefik"
+      - "./certificates:/certificates"
+    # networks:
+    #   - my_network
+
+  # whoami:
+  #   # A container that exposes an API to show its IP address
+  #   image: traefik/whoami
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
+  #     - "traefik.http.routers.whoami.entrypoints=webyarp, web"
+  #     - "traefik.docker.network=traefik_default"
+
+
+  fakeframegrabber:
+    <<: *base
+    container_name: fakeframegrabber
+    # FIXME sleep
+    command: sh -c "yarp namespace $${YARP_NAMESPACE}; yarpdev --device fakeFrameGrabber"
+    labels:
+      - "traefik.enable=true"
+      # set traefik to enable dns and tls, together with input and output port
+      - "traefik.http.routers.fakeframegrabber.rule=Host(`fakeframegrabber.docker.localhost`)"
+      - "traefik.http.routers.fakeframegrabber.entrypoints=mjpegsecure"
+      - "traefik.http.routers.fakeframegrabber.tls=true"
+      - "traefik.http.services.fakeframegrabber.loadbalancer.server.port=10003"
+      # set the network
+      - "traefik.docker.network=traefik_default"
+      # authentication
+      - "traefik.http.routers.fakeframegrabber.middlewares=fakeframegrabberauth"
+      # $ must be double escaped ($$)
+      - "traefik.http.middlewares.fakeframegrabberauth.basicauth.users=utente:$$apr1$$592WtPiy$$YY32MovBAzQoADX5jyqb51"
+      # here if i replace the server with the correct one externalise the authentication to the server, 
+      # maybe a header forward needs to be added
+      # - "traefik.http.middlewares.fakeframegrabberauth.forwardauth.address=https://authserver.com/auth"
+
+  yarp:
+    <<: *base
+    container_name: yarp
+    # FIXME sleep
+    command: sh -c "yarp namespace $${YARP_NAMESPACE}; yarp server --write"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.yarp.rule=Host(`yarp.docker.localhost`)"
+      - "traefik.http.routers.yarp.entrypoints=webyarp"
+      - "traefik.http.routers.yarp.tls=true"
+      - "traefik.http.services.yarp.loadbalancer.server.port=10000"
+      - "traefik.docker.network=traefik_default"
+      # - "traefik.http.middlewares.test-auth.basicauth.users=utente:$apr1$592WtPiy$YY32MovBAzQoADX5jyqb51"
+#     networks:
+#       # - traefik
+#       - my_network
+
+# networks:
+#   my_network:
+#     driver: bridge
+  # traefik:
+  #   external:
+  #     name: traefik_default

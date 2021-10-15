@@ -1,0 +1,94 @@
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false  # true by default
+
+# (Optional) Log information
+# ---
+# log:
+#  level: ERROR  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+#   format: common  # common, json, logfmt
+#   filePath: /var/log/traefik/traefik.log
+
+# (Optional) Accesslog
+# ---
+# accesslog:
+  # format: common  # common, json, logfmt
+  # filePath: /var/log/traefik/access.log
+
+# (Optional) Enable API and Dashboard
+# ---
+api:
+ dashboard: true  # true by default
+ insecure: true  # Don't do this in production!
+
+# Entry Points configuration
+# ---
+entryPoints:
+  # web:
+  #   address: :80
+  webyarp:
+    address: :10000
+    # (Optional) Redirect to HTTPS
+    # ---
+    http:
+      redirections:
+        entryPoint:
+          to: webyarp
+          scheme: https
+  mjpegsecure:
+    address: :10003
+    # (Optional) Redirect to HTTPS
+    # ---
+    http:
+      redirections:
+        entryPoint:
+          to: mjpegsecure
+          scheme: https
+
+
+  websecure:
+    address: :443
+tls:
+  certificates:
+    - certFile: /certificates/traefik.crt
+      keyFile: /certificates/traefik.key
+
+  options:
+    default:
+      minVersion: VersionTLS12
+
+    mintls13:
+      minVersion: VersionTLS13
+# Certificates configuration
+# ---
+# TODO: Custmoize your Cert Resolvers and Domain settings
+# 
+# certificatesResolvers:
+# # LET'S ENCRYPT:
+# # ---
+# # 
+#   staging:
+#     acme:
+#       email: bernagozzi.stefano@gmail.com  # TODO: Change this to your email
+#       storage: /ssl-certs/acme.json
+#       caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+#       httpChallenge:
+#         entryPoint: web
+#   production:
+#     acme:
+#       email: bernagozzi.stefano@gmail.com  # TODO: Change this to your email
+#       storage: /ssl-certs/acme.json
+#       caServer: "https://acme-v02.api.letsencrypt.org/directory"
+#       httpChallenge:
+#         entryPoint: web
+
+# Provider Configuration
+# ---
+# TODO: Customize your Provider Settings if needed
+# 
+providers:
+# DOCKER:
+# ---
+#
+  docker:
+    exposedByDefault: false  # Default is true
