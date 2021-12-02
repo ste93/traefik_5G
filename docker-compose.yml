@@ -52,7 +52,7 @@ services:
       - "8080:8080"
       # # The Web UI (enabled by --api.insecure=true)
       - "20000:20000"
-      - "30000:30000"
+      # - "30000:30000"
       - "16001:16001"
     volumes:
       # So that Traefik can listen to the Docker events
@@ -63,7 +63,8 @@ services:
   webgui:
     <<: *base
     container_name: webgui
-    command: terminator --no-dbus
+    command: bash -c "sleep 5;cd /home/user1/yarp-web-teleop; YARP_PORTNUMBER_click=30000 python3 server.py --map_port 20000 --camera_port 20000 --camera_host webgui.docker --click_port /click --no_ssl"
+    # command: terminator --no-dbus
     labels:
       - "traefik.enable=true"
       # set traefik to enable dns and tls, together with input and output port
