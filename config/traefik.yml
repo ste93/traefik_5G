@@ -2,21 +2,11 @@ global:
   checkNewVersion: true
   sendAnonymousUsage: false  # true by default
 
-# (Optional) Log information
-# ---
-# log:
-#  level: ERROR  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-#   format: common  # common, json, logfmt
-#   filePath: /var/log/traefik/traefik.log
+log:
+  level: DEBUG  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: common  # common, json, logfmt
+  filePath: /var/log/traefik/traefik.log
 
-# (Optional) Accesslog
-# ---
-# accesslog:
-  # format: common  # common, json, logfmt
-  # filePath: /var/log/traefik/access.log
-
-# (Optional) Enable API and Dashboard
-# ---
 api:
  dashboard: true  # true by default
  insecure: true  # Don't do this in production!
@@ -24,19 +14,9 @@ api:
 # Entry Points configuration
 # ---
 entryPoints:
-  # web:
-  #   address: :80
-  webyarp:
-    address: :10000
-    # (Optional) Redirect to HTTPS
-    # ---
-    http:
-      redirections:
-        entryPoint:
-          to: webyarp
-          scheme: https
+
   mjpegsecure:
-    address: :10003
+    address: :20000
     # (Optional) Redirect to HTTPS
     # ---
     http:
@@ -45,6 +25,15 @@ entryPoints:
           to: mjpegsecure
           scheme: https
 
+  webgui:
+    address: :16001
+    # (Optional) Redirect to HTTPS
+    # ---
+    http:
+      redirections:
+        entryPoint:
+          to: webgui
+          scheme: https
 
   websecure:
     address: :443
