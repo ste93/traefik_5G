@@ -15,6 +15,11 @@ api:
 # ---
 entryPoints:
 
+  click:
+    address: :30000
+    # (Optional) Redirect to HTTPS
+    # ---
+
   mjpegsecure:
     address: :20000
     # (Optional) Redirect to HTTPS

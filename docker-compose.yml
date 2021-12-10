@@ -42,18 +42,17 @@ services:
     # The official v2 Traefik docker image
     image: traefik:v2.5
     # Enables the web UI and tells Traefik to listen to docker
-    command: --api.insecure=true --providers.docker --web --docker --docker.watch --docker.domain=localhost --logLevel=DEBUG
+    command: --api.insecure=false --providers.docker --web --docker --docker.watch --docker.domain=localhost --logLevel=DEBUG
       - --entrypoints.web-secure.address=:443 
       - --providers.docker=true
     ports:
       # The HTTP port
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-      # # The Web UI (enabled by --api.insecure=true)
+      # - "80:80"
+      # - "443:443"
+      # - "8080:8080"
       - "20000:20000"
-      # - "30000:30000"
       - "16001:16001"
+      - "30000:30000"
     volumes:
       # So that Traefik can listen to the Docker events
       - "/var/run/docker.sock:/var/run/docker.sock"
@@ -63,27 +62,37 @@ services:
   webgui:
     <<: *base
     container_name: webgui
-    command: bash -c "sleep 5;cd /home/user1/yarp-web-teleop; YARP_PORTNUMBER_click=30000 python3 server.py --map_port 20000 --camera_port 20000 --camera_host webgui.docker --click_port /click --no_ssl"
+
+    command: bash -c "sleep 5;cd /home/user1/yarp-web-teleop;YARP_PORTNUMBER_click=30000 python3 server.py --map_port 10219 --camera_port 10249 --camera_host 10.240.0.20 --click_port /click --no_ssl"
     # command: terminator --no-dbus
     labels:
       - "traefik.enable=true"
       # set traefik to enable dns and tls, together with input and output port
-      - "traefik.http.routers.webgui.rule=Host(`webgui.docker`) || Host(`webgui.docker.localhost`)"
+      - "traefik.http.routers.webgui.rule=Host(`webgui.docker`)"
       - "traefik.http.routers.webgui.entrypoints=webgui"
       - "traefik.http.routers.webgui.tls=true"
       - "traefik.http.routers.webgui.service=webgui"
       - "traefik.http.services.webgui.loadbalancer.server.port=16001"
-      - "traefik.tcp.routers.websocket.rule=HostSNI(`webgui.docker`) || HostSNI(`webgui.docker.localhost`)"
+      - "traefik.tcp.routers.websocket.rule=HostSNI(`webgui.docker`)"
       - "traefik.tcp.routers.websocket.entrypoints=webgui"
       - "traefik.tcp.routers.websocket.tls=true"
       - "traefik.tcp.routers.websocket.service=websocket"
       - "traefik.tcp.services.websocket.loadbalancer.server.port=16001"
+      # - "traefik.tcp.routers.click.rule=HostSNI(`*`)"
+      # - "traefik.tcp.routers.click.entrypoints=click"
+      # - "traefik.tcp.routers.click.tls=true"
+      # - "traefik.tcp.routers.click.service=click"
+      # - "traefik.tcp.services.click.loadbalancer.server.port=30000"
+      - "traefik.http.routers.click.rule=Host(`webgui.docker`)"
+      - "traefik.http.routers.click.entrypoints=click"
+      - "traefik.http.routers.click.tls=true"
+      - "traefik.http.routers.click.service=click"
+      - "traefik.http.services.click.loadbalancer.server.port=30000"
       # set the network
       - "traefik.docker.network=traefik_default"
     depends_on:
       - reverse-proxy
       - fakeframegrabber
-
 
 
   fakeframegrabber:
@@ -94,7 +103,7 @@ services:
     labels:
       - "traefik.enable=true"
       # set traefik to enable dns and tls, together with input and output port
-      - "traefik.http.routers.fakeframegrabber.rule= Host(`webgui.docker`) || Host(`webgui.docker.localhost`)"
+      - "traefik.http.routers.fakeframegrabber.rule= Host(`webgui.docker`)"
       - "traefik.http.routers.fakeframegrabber.entrypoints=mjpegsecure"
       - "traefik.http.routers.fakeframegrabber.tls=true"
       - "traefik.http.services.fakeframegrabber.loadbalancer.server.port=20000"
