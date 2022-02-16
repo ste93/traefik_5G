@@ -1,0 +1,12 @@
+YARP_PORTNUMBER_r1=11000 yarp repeat /r1
+YARP_PORTNUMBER_r2=11001 yarp repeat /r2
+
+yarp connect /freeFloorViewer/floorEnhanced:o /r1
+yarp connect /navigationGui/map:o /r2
+yarp connect /webview/headClick:o /freeFloorViewer/clicked_head:i
+yarp connect /webview/mapClick:o /navigationGui/yarpviewTarget:i
+yarp connect /webview/navClick:o /freeFloorViewer/clicked_pos:i
+
+
+
+

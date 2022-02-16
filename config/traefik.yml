@@ -15,10 +15,6 @@ api:
 # ---
 entryPoints:
 
-  click:
-    address: :30000
-    # (Optional) Redirect to HTTPS
-    # ---
 
   mjpegsecure:
     address: :20000
@@ -30,8 +26,20 @@ entryPoints:
           to: mjpegsecure
           scheme: https
 
+  mjpegsecure2:
+    address: :20001
+    # (Optional) Redirect to HTTPS
+    # ---
+    http:
+      redirections:
+        entryPoint:
+          to: mjpegsecure2
+          scheme: https
+          
+
+          
   webgui:
-    address: :16001
+    address: :33000
     # (Optional) Redirect to HTTPS
     # ---
     http:
@@ -39,7 +47,8 @@ entryPoints:
         entryPoint:
           to: webgui
           scheme: https
-
+          
+          
   websecure:
     address: :443
 tls:

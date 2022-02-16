@@ -1,0 +1,27 @@
+authtoken: 222phYIUkXVXaF2F0zbpTI1cYtp_2GfnAfvvJZdUbgmoZGVDo
+region: eu
+log: stdout
+tunnels:
+        webgui:
+                proto: http
+                bind_tls: true
+                addr: http://127.0.0.1:16001
+                host_header: "127.0.0.1:16001"
+                #addr: https://webgui.docker:33000
+                #host_header: "webgui.docker:33000"
+                
+        mjpeg1:
+                proto: http
+                bind_tls: true
+                addr: http://127.0.0.1:11000
+                host_header: "127.0.0.1"
+                #addr: https://webgui.docker:20000
+                #host_header: webgui.docker
+        mjpeg2:
+                proto: http
+                bind_tls: true
+                addr: http://127.0.0.1:11001
+                host_header: "127.0.0.1"
+                #addr: https://webgui.docker:20001
+                
+
