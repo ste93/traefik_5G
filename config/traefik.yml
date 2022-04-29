@@ -94,4 +94,4 @@ providers:
 # ---
 #
   docker:
-    exposedByDefault: false  # Default is true
+    exposedByDefault: true # false  # Default is true

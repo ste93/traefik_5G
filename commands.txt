@@ -1,6 +1,6 @@
 YARP_PORTNUMBER_r1=11000 yarp repeat /r1
 YARP_PORTNUMBER_r2=11001 yarp repeat /r2
-
+cd /home/user1/yarp-web-teleop; python3 server.py --map_port 20001 --camera_port 20000 --camera_host webgui.docker --map_host webgui.docker --click_port /click --traefik
 yarp connect /freeFloorViewer/floorEnhanced:o /r1
 yarp connect /navigationGui/map:o /r2
 yarp connect /webview/headClick:o /freeFloorViewer/clicked_head:i

@@ -26,8 +26,9 @@ x-base: &base
     - "${XDG_RUNTIME_DIR}/yarp:/run/user1/1000/yarp"
     - "${XDG_RUNTIME_DIR}/dconf:/run/user1/1000/dconf"
     - "${XDG_RUNTIME_DIR}/bus:/run/user1/1000/bus"
-    - "${HOME}/.config/yarp:/home/user1/.config/yarp:ro"
-    - "${HOME}/.local/share/yarp:/home/user1/.local/share/yarp:ro"
+    - "/home/r1-user-vpn/.config/yarp:/home/user1/.config/yarp"
+    - "/home/r1-user-vpn/Pictures/:/home/user1/Pictures"
+    - "/home/r1-user-vpn/.local/share/yarp:/home/user1/.local/share/yarp:ro"
     # - ros1-volume:/home/user1/.ros
   # network_mode: host
   # ipc: host
@@ -49,6 +50,7 @@ services:
       # - "443:443"
       - "8080:8080"
       - "20000:20000"
+      - "20001:20001"
       - "33000:33000"
     network_mode: host
     volumes:
@@ -60,24 +62,26 @@ services:
   webgui:
     <<: *base
     container_name: webgui
-
     #command: bash -c "sleep 5;cd /home/user1/yarp-web-teleop; python3 server.py --map_port 20001 --camera_port 20000 --camera_host webgui.docker --map_host webgui.docker --click_port /click --traefik"
     command: terminator --no-dbus -T "webgui"
     # command: yarp run --server /traefik --log
     labels:
       - "traefik.enable=true"
       # set traefik to enable dns and tls, together with input and output port
-      - "traefik.http.routers.webguirouter.rule=Host(`webgui.docker`)"
+      - "traefik.http.routers.webguirouter.rule=ClientIP(`0.0.0.0/0`)"
+      # - "traefik.http.routers.webguirouter.rule=Host(`webgui.docker`)"
       - "traefik.http.routers.webguirouter.entrypoints=webgui"
       - "traefik.http.routers.webguirouter.tls=true"
       - "traefik.http.routers.webguirouter.service=webguiservice"
       - "traefik.http.services.webguiservice.loadbalancer.server.port=16001"
-      - "traefik.http.routers.fakeframegrabber.rule= Host(`webgui.docker`)"
+      - "traefik.http.routers.fakeframegrabber.rule=ClientIP(`0.0.0.0/0`)"
+      # - "traefik.http.routers.fakeframegrabber.rule= Host(`webgui.docker`)"
       - "traefik.http.routers.fakeframegrabber.entrypoints=mjpegsecure"
       - "traefik.http.routers.fakeframegrabber.tls=true" 
       - "traefik.http.routers.fakeframegrabber.service=fakeframegrabberservice1"
       - "traefik.http.services.fakeframegrabberservice1.loadbalancer.server.port=11000"
-      - "traefik.http.routers.fakeframegrabber2.rule= Host(`webgui.docker`)"
+      - "traefik.http.routers.fakeframegrabber2.rule=ClientIP(`0.0.0.0/0`)"
+      # - "traefik.http.routers.fakeframegrabber2.rule= Host(`webgui.docker`)"
       - "traefik.http.routers.fakeframegrabber2.entrypoints=mjpegsecure2"
       - "traefik.http.routers.fakeframegrabber2.tls=true"
       - "traefik.http.routers.fakeframegrabber2.service=fakeframegrabberservice2"
@@ -85,3 +89,11 @@ services:
     network_mode: host
     depends_on:
       - reverse-proxy
+
+
+  #webgui-no-traefik:
+  # <<: *base
+  #  container_name: webgui-no-traefik
+    #command: bash -c "sleep 5;cd /home/user1/yarp-web-teleop; python3 server.py --map_port 20001 --camera_port 20000 --camera_host webgui.docker --map_host webgui.docker --click_port /click --traefik"
+    # command: cd /home/user1/yarp-web-teleop; python3 server.py --no_ssl --simulate
+    #  network_mode: host
